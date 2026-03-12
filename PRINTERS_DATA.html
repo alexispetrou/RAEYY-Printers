@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Σύστημα Διαχείρισης Εκτυπωτών & Μελανιών</title>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            color: var(--dark);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-left: 6px solid var(--primary);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            width: 70px;
+            height: 70px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+        }
+
+        .header-text h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+
+        .header-text p {
+            color: var(--secondary);
+            font-size: 16px;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 16px;
+            padding: 8px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 16px 24px;
+            text-align: center;
+            background: none;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--secondary);
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Controls */
+        .controls {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--dark);
+            font-size: 14px;
+        }
+
+        input, select {
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        /* Printers Grid */
+        .printers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .printer-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            border: 1px solid var(--border);
+        }
+
+        .printer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px -8px rgba(0, 0, 0, 0.15);
+        }
+
+        .printer-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 20px;
+            position: relative;
+        }
+
+        .printer-name {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .printer-company {
+            font-size: 14px;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .printer-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .printer-details {
+            padding: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--secondary);
+            font-size: 14px;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .inks-section {
+            margin-top: 16px;
+        }
+
+        .inks-title {
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--dark);
+            font-size: 16px;
+        }
+
+        .inks-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .ink-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--light);
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .ink-black { border-color: #000; }
+        .ink-magenta { border-color: #ff00ff; }
+        .ink-yellow { border-color: #ffff00; }
+        .ink-blue { border-color: #0000ff; }
+
+        .ink-code {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .printer-actions {
+            padding: 16px 20px 20px;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        .printer-actions .btn {
+            flex: 1;
+            justify-content: center;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        /* Ink Inventory */
+        .ink-inventory {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .ink-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .ink-card {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 6px solid;
+            transition: all 0.3s;
+        }
+
+        .ink-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .ink-card-black { border-color: #000; }
+        .ink-card-magenta { border-color: #ff00ff; }
+        .ink-card-yellow { border-color: #ffff00; }
+        .ink-card-blue { border-color: #0000ff; }
+
+        .ink-card-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .ink-card-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .ink-card-company {
+            color: var(--secondary);
+            font-size: 14px;
+        }
+
+        .ink-quantity {
+            font-size: 32px;
+            font-weight: 700;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .ink-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .ink-actions .btn {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .quantity-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary);
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .quantity-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        .quantity-input {
+            width: 80px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            padding: 8px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ink-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .ink-input {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ink-input label {
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .modal-actions .btn {
+            flex: 1;
+            justify-content: center;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--secondary);
+            font-size: 14px;
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .export-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .printers-grid, .ink-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 20px;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+        }
+
+        /* No Results */
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .no-results i {
+            font-size: 48px;
+            color: var(--secondary);
+            margin-bottom: 16px;
+        }
+
+        .no-results h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        .no-results p {
+            color: var(--secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-print"></i>
+                </div>
+                <div class="header-text">
+                    <h1>Σύστημα Διαχείρισης Εκτυπωτών & Μελανιών</h1>
+                    <p>Διαχείριση εκτυπωτών και αποθέματος μελανιών</p>
+                </div>
+            </div>
+            <div class="export-buttons">
+                <button class="btn btn-success" id="exportPrintersBtn">
+                    <i class="fas fa-file-excel"></i> Εκτυπωτές
+                </button>
+                <button class="btn btn-primary" id="exportInkBtn">
+                    <i class="fas fa-file-excel"></i> Μελάνια
+                </button>
+            </div>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab active" data-tab="printers-tab">
+                <i class="fas fa-print"></i> Εκτυπωτές
+            </button>
+            <button class="tab" data-tab="ink-tab">
+                <i class="fas fa-tint"></i> Απόθεμα Μελανιών
+            </button>
+        </div>
+
+        <!-- Κατάστημα Εκτυπωτών -->
+        <div class="tab-content active" id="printers-tab">
+            <section class="controls">
+                <form class="search-form" id="searchForm">
+                    <div class="form-group">
+                        <label for="floor"><i class="fas fa-building"></i> Όροφος</label>
+                        <select id="floor">
+                            <option value="">Όλοι οι Όροφοι</option>
+                            <option value="1st">1ος Όροφος</option>
+                            <option value="2nd">2ος Όροφος</option>
+                            <option value="3rd">3ος Όροφος</option>
+                            <option value="4th">4ος Όροφος</option>
+                            <option value="5th">5ος Όροφος</option>
+                            <option value="6th">6ος Όροφος</option>
+                            <option value="7th">7ος Όροφος</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="company"><i class="fas fa-industry"></i> Εταιρεία</label>
+                        <select id="company">
+                            <option value="">Όλες οι Εταιρείες</option>
+                            <option value="xerox">Xerox</option>
+                            <option value="ricoh">Ricoh</option>
+                            <option value="sharp">Sharp</option>
+                            <option value="lexmark">Lexmark</option>
+                            <option value="oki">Oki</option>
+                            <option value="monica">Monica</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ip"><i class="fas fa-network-wired"></i> Διεύθυνση IP</label>
+                        <input type="text" id="ip" placeholder="Εισάγετε διεύθυνση IP">
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Αναζήτηση
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="resetBtn" style="margin-top: 8px;">
+                            <i class="fas fa-redo"></i> Επαναφορά
+                        </button>
+                        <button type="button" class="btn btn-success" id="addPrinterBtn" style="margin-top: 8px;">
+                            <i class="fas fa-plus"></i> Προσθήκη Εκτυπωτή
+                        </button>
+                    </div>
+                </form>
+            </section>
+            
+            <section class="printers-section">
+                <div class="printers-grid" id="printersGrid">
+                    <!-- Οι κάρτες εκτυπωτών θα εισαχθούν δυναμικά εδώ -->
+                </div>
+            </section>
+        </div>
+
+        <!-- Κατάστημα Μελανιών -->
+        <div class="tab-content" id="ink-tab">
+            <section class="ink-inventory">
+                <h2 style="margin-bottom: 20px;"><i class="fas fa-boxes"></i> Διαχείριση Αποθέματος Μελανιών</h2>
+                <div class="ink-grid" id="inkGrid">
+                    <!-- Οι κάρτες μελανιών θα εισαχθούν δυναμικά εδώ -->
+                </div>
+            </section>
+        </div>
+        
+        <footer>
+            <p>Σύστημα Διαχείρισης Εκτυπωτών & Μελανιών &copy; 2025 - Αλέξης Πέτρου</p>
+        </footer>
+    </div>
+
+    <!-- Modal για Προσθήκη/Επεξεργασία Εκτυπωτή -->
+    <div class="modal" id="printerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Προσθήκη Νέου Εκτυπωτή</h2>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="printerForm">
+                    <input type="hidden" id="printerIndex">
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="modalName">Όνομα Εκτυπωτή</label>
+                            <input type="text" id="modalName" required>
+                        </div>
+                        <div class="form-field">
+                            <label for="modalCompany">Εταιρεία</label>
+                            <select id="modalCompany" required>
+                                <option value="">Επιλέξτε Εταιρεία</option>
+                                <option value="xerox">Xerox</option>
+                                <option value="ricoh">Ricoh</option>
+                                <option value="sharp">Sharp</option>
+                                <option value="lexmark">Lexmark</option>
+                                <option value="oki">Oki</option>
+                                <option value="monica">Monica</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="modalFloor">Όροφος</label>
+                            <select id="modalFloor" required>
+                                <option value="">Επιλέξτε Όροφο</option>
+                                <option value="1st">1ος Όροφος</option>
+                                <option value="2nd">2ος Όροφοσ</option>
+                                <option value="3rd">3ος Όροφος</option>
+                                <option value="4th">4ος Όροφος</option>
+                                <option value="5th">5ος Όροφος</option>
+                                <option value="6th">6ος Όροφος</option>
+                                <option value="7th">7ος Όροφος</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label for="modalIP">Διεύθυνση IP</label>
+                            <input type="text" id="modalIP" required>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label class="inks-title">Κωδικοί Μελανιών</label>
+                        <div class="ink-inputs">
+                            <div class="ink-input">
+                                <label for="modalBlack">Μαύρο</label>
+                                <input type="text" id="modalBlack" required>
+                            </div>
+                            <div class="ink-input">
+                                <label for="modalMagenta">Ματζέντα</label>
+                                <input type="text" id="modalMagenta" required>
+                            </div>
+                            <div class="ink-input">
+                                <label for="modalYellow">Κίτρινο</label>
+                                <input type="text" id="modalYellow" required>
+                            </div>
+                            <div class="ink-input">
+                                <label for="modalBlue">Μπλε</label>
+                                <input type="text" id="modalBlue" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Αποθήκευση
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="cancelModal">
+                            <i class="fas fa-times"></i> Ακύρωση
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Δεδομένα Εκτυπωτών
+        let printerData = {
+            "printers": [
+                {
+                    "name": "Lexmark CX735ADSE",
+                    "company": "lexmark",
+                    "floor": "1st",
+                    "ip": "10.1.0.84",
+                    "inks": {
+                        "magenta": "M123",
+                        "yellow": "Y123",
+                        "blue": "C123",
+                        "black": "K123"
+                    }
+                },
+                {
+                    "name": "Lexmark CX735ADSE",
+                    "company": "lexmark",
+                    "floor": "1st",
+                    "ip": "10.1.0.132",
+                    "inks": {
+                        "magenta": "M123",
+                        "yellow": "Y123",
+                        "blue": "C123",
+                        "black": "K123"
+                    }
+                },
+                {
+                    "name": "Xerox AltaLink C8130",
+                    "company": "xerox",
+                    "floor": "2nd",
+                    "ip": "10.2.0.30",
+                    "inks": {
+                        "magenta": "M123",
+                        "yellow": "Y123",
+                        "blue": "C123",
+                        "black": "K123"
+                    }
+                },
+                {
+                    "name": "Ricoh MPC3004",
+                    "company": "ricoh",
+                    "ip": "195.251.119.94",
+                    "floor": "2nd",
+                    "inks": {
+                        "magenta": "M789",
+                        "yellow": "Y789",
+                        "blue": "C789",
+                        "black": "K789"
+                    }
+                },
+                {
+                    "name": "Sharp BP-50C26",
+                    "company": "sharp",
+                    "ip": "10.1.0.183",
+                    "floor": "2nd",
+                    "inks": {
+                        "magenta": "M789",
+                        "yellow": "Y789",
+                        "blue": "C789",
+                        "black": "K789"
+                    }
+                }
+            ]
+        };
+
+        // Απόθεμα Μελανιών
+        let inkInventory = {
+            "xerox": {
+                "AltaLink C8130": {
+                    "black": { quantity: 15, code: "K123" },
+                    "magenta": { quantity: 12, code: "M123" },
+                    "yellow": { quantity: 10, code: "Y123" },
+                    "blue": { quantity: 14, code: "C123" }
+                }
+            },
+            "ricoh": {
+                "MPC3004": {
+                    "black": { quantity: 20, code: "K789" },
+                    "magenta": { quantity: 18, code: "M789" },
+                    "yellow": { quantity: 22, code: "Y789" },
+                    "blue": { quantity: 19, code: "C789" }
+                }
+            },
+            "sharp": {
+                "BP-50C26": {
+                    "black": { quantity: 5, code: "K789" },
+                    "magenta": { quantity: 4, code: "M789" },
+                    "yellow": { quantity: 6, code: "Y789" },
+                    "blue": { quantity: 5, code: "C789" }
+                },
+                "MX-3050V": {
+                    "black": { quantity: 12, code: "K789" },
+                    "magenta": { quantity: 10, code: "M789" },
+                    "yellow": { quantity: 11, code: "Y789" },
+                    "blue": { quantity: 9, code: "C789" }
+                }
+            },
+            "lexmark": {
+                "CX735ADSE": {
+                    "black": { quantity: 25, code: "K123" },
+                    "magenta": { quantity: 23, code: "M123" },
+                    "yellow": { quantity: 24, code: "Y123" },
+                    "blue": { quantity: 22, code: "C123" }
+                }
+            },
+            "oki": {
+                "MC363": {
+                    "black": { quantity: 7, code: "K789" },
+                    "magenta": { quantity: 6, code: "M789" },
+                    "yellow": { quantity: 8, code: "Y789" },
+                    "blue": { quantity: 5, code: "C789" }
+                },
+                "MB472": {
+                    "black": { quantity: 9, code: "K789" },
+                    "magenta": { quantity: 8, code: "M789" },
+                    "yellow": { quantity: 10, code: "Y789" },
+                    "blue": { quantity: 7, code: "C789" }
+                }
+            },
+            "monica": {
+                "C300i": {
+                    "black": { quantity: 3, code: "K789" },
+                    "magenta": { quantity: 2, code: "M789" },
+                    "yellow": { quantity: 4, code: "Y789" },
+                    "blue": { quantity: 3, code: "C789" }
+                }
+            }
+        };
+
+        // Στοιχεία DOM
+        const printersGrid = document.getElementById('printersGrid');
+        const inkGrid = document.getElementById('inkGrid');
+        const searchForm = document.getElementById('searchForm');
+        const resetBtn = document.getElementById('resetBtn');
+        const floorSelect = document.getElementById('floor');
+        const companySelect = document.getElementById('company');
+        const ipInput = document.getElementById('ip');
+        const addPrinterBtn = document.getElementById('addPrinterBtn');
+        const printerModal = document.getElementById('printerModal');
+        const closeModal = document.getElementById('closeModal');
+        const cancelModal = document.getElementById('cancelModal');
+        const printerForm = document.getElementById('printerForm');
+        const modalTitle = document.getElementById('modalTitle');
+        const printerIndex = document.getElementById('printerIndex');
+        const modalName = document.getElementById('modalName');
+        const modalCompany = document.getElementById('modalCompany');
+        const modalFloor = document.getElementById('modalFloor');
+        const modalIP = document.getElementById('modalIP');
+        const modalBlack = document.getElementById('modalBlack');
+        const modalMagenta = document.getElementById('modalMagenta');
+        const modalYellow = document.getElementById('modalYellow');
+        const modalBlue = document.getElementById('modalBlue');
+        const exportPrintersBtn = document.getElementById('exportPrintersBtn');
+        const exportInkBtn = document.getElementById('exportInkBtn');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        // Εμφάνιση Εκτυπωτών
+        function displayPrinters(printers) {
+            printersGrid.innerHTML = '';
+            
+            if (printers.length === 0) {
+                printersGrid.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-print"></i>
+                        <h3>Δεν βρέθηκαν εκτυπωτές</h3>
+                        <p>Δοκιμάστε να αλλάξετε τα κριτήρια αναζήτησης</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            printers.forEach((printer, index) => {
+                const printerCard = document.createElement('div');
+                printerCard.className = 'printer-card';
+                
+                printerCard.innerHTML = `
+                    <div class="printer-header">
+                        <div class="printer-name">${printer.name}</div>
+                        <div class="printer-company">
+                            <i class="fas fa-industry"></i>
+                            ${printer.company.charAt(0).toUpperCase() + printer.company.slice(1)}
+                        </div>
+                        <div class="printer-status">Ενεργός</div>
+                    </div>
+                    <div class="printer-details">
+                        <div class="detail-row">
+                            <span class="detail-label"><i class="fas fa-building"></i> Όροφος</span>
+                            <span class="detail-value">${printer.floor}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label"><i class="fas fa-network-wired"></i> IP</span>
+                            <span class="detail-value">${printer.ip}</span>
+                        </div>
+                        <div class="inks-section">
+                            <div class="inks-title"><i class="fas fa-palette"></i> Μελάνια</div>
+                            <div class="inks-grid">
+                                <div class="ink-item ink-black">
+                                    <span>Μαύρο</span>
+                                    <span class="ink-code">${printer.inks.black}</span>
+                                </div>
+                                <div class="ink-item ink-magenta">
+                                    <span>Ματζέντα</span>
+                                    <span class="ink-code">${printer.inks.magenta}</span>
+                                </div>
+                                <div class="ink-item ink-yellow">
+                                    <span>Κίτρινο</span>
+                                    <span class="ink-code">${printer.inks.yellow}</span>
+                                </div>
+                                <div class="ink-item ink-blue">
+                                    <span>Μπλε</span>
+                                    <span class="ink-code">${printer.inks.blue}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="printer-actions">
+                        <button class="btn btn-warning edit-btn" data-index="${index}">
+                            <i class="fas fa-edit"></i> Επεξεργασία
+                        </button>
+                        <button class="btn btn-danger delete-btn" data-index="${index}">
+                            <i class="fas fa-trash"></i> Διαγραφή
+                        </button>
+                    </div>
+                `;
+                
+                printersGrid.appendChild(printerCard);
+            });
+            
+            // Προσθήκη event listeners στα κουμπιά
+            document.querySelectorAll('.edit-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    editPrinter(index);
+                });
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    deletePrinter(index);
+                });
+            });
+        }
+
+        // Εμφάνιση Αποθέματος Μελανιών
+        function displayInkInventory() {
+            inkGrid.innerHTML = '';
+            
+            for (const [company, models] of Object.entries(inkInventory)) {
+                for (const [model, inks] of Object.entries(models)) {
+                    for (const [color, data] of Object.entries(inks)) {
+                        const inkCard = document.createElement('div');
+                        inkCard.className = `ink-card ink-card-${color}`;
+                        
+                        const colorNames = {
+                            'black': 'Μαύρο',
+                            'magenta': 'Ματζέντα', 
+                            'yellow': 'Κίτρινο',
+                            'blue': 'Μπλε'
+                        };
+                        
+                        inkCard.innerHTML = `
+                            <div class="ink-card-header">
+                                <div>
+                                    <div class="ink-card-title">${colorNames[color]}</div>
+                                    <div class="ink-card-company">${company} - ${model}</div>
+                                </div>
+                                <div class="ink-code">${data.code}</div>
+                            </div>
+                            <div class="ink-quantity">${data.quantity}</div>
+                            <div class="quantity-controls">
+                                <button class="quantity-btn decrease-btn" data-company="${company}" data-model="${model}" data-color="${color}">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" class="quantity-input" value="${data.quantity}" 
+                                       data-company="${company}" data-model="${model}" data-color="${color}">
+                                <button class="quantity-btn increase-btn" data-company="${company}" data-model="${model}" data-color="${color}">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <div class="ink-actions">
+                                <button class="btn btn-success update-quantity-btn" 
+                                        data-company="${company}" data-model="${model}" data-color="${color}">
+                                    <i class="fas fa-sync-alt"></i> Ενημέρωση
+                                </button>
+                            </div>
+                        `;
+                        
+                        inkGrid.appendChild(inkCard);
+                    }
+                }
+            }
+            
+            // Event listeners για quantity controls
+            document.querySelectorAll('.increase-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const company = this.getAttribute('data-company');
+                    const model = this.getAttribute('data-model');
+                    const color = this.getAttribute('data-color');
+                    const input = document.querySelector(`.quantity-input[data-company="${company}"][data-model="${model}"][data-color="${color}"]`);
+                    input.value = parseInt(input.value) + 1;
+                });
+            });
+            
+            document.querySelectorAll('.decrease-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const company = this.getAttribute('data-company');
+                    const model = this.getAttribute('data-model');
+                    const color = this.getAttribute('data-color');
+                    const input = document.querySelector(`.quantity-input[data-company="${company}"][data-model="${model}"][data-color="${color}"]`);
+                    if (parseInt(input.value) > 0) {
+                        input.value = parseInt(input.value) - 1;
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.update-quantity-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const company = this.getAttribute('data-company');
+                    const model = this.getAttribute('data-model');
+                    const color = this.getAttribute('data-color');
+                    const input = document.querySelector(`.quantity-input[data-company="${company}"][data-model="${model}"][data-color="${color}"]`);
+                    const newQuantity = parseInt(input.value);
+                    
+                    if (!isNaN(newQuantity) && newQuantity >= 0) {
+                        inkInventory[company][model][color].quantity = newQuantity;
+                        saveData();
+                        displayInkInventory();
+                        showNotification(`Ενημερώθηκε το απόθεμα ${colorNames[color]} για ${company} ${model} σε ${newQuantity}`, 'success');
+                    }
+                });
+            });
+        }
+
+        // Φιλτράρισμα Εκτυπωτών
+        function filterPrinters() {
+            const floorValue = floorSelect.value.toLowerCase();
+            const companyValue = companySelect.value.toLowerCase();
+            const ipValue = ipInput.value.toLowerCase();
+            
+            const filteredPrinters = printerData.printers.filter(printer => {
+                const matchesFloor = !floorValue || printer.floor.toLowerCase() === floorValue;
+                const matchesCompany = !companyValue || printer.company.toLowerCase() === companyValue;
+                const matchesIP = !ipValue || printer.ip.toLowerCase().includes(ipValue);
+                
+                return matchesFloor && matchesCompany && matchesIP;
+            });
+            
+            displayPrinters(filteredPrinters);
+        }
+
+        // Προσθήκη Νέου Εκτυπωτή
+        function openAddModal() {
+            modalTitle.textContent = "Προσθήκη Νέου Εκτυπωτή";
+            printerIndex.value = "";
+            modalName.value = "";
+            modalCompany.value = "";
+            modalFloor.value = "";
+            modalIP.value = "";
+            modalBlack.value = "";
+            modalMagenta.value = "";
+            modalYellow.value = "";
+            modalBlue.value = "";
+            printerModal.style.display = "flex";
+        }
+
+        // Επεξεργασία Εκτυπωτή
+        function editPrinter(index) {
+            const printer = printerData.printers[index];
+            modalTitle.textContent = "Επεξεργασία Εκτυπωτή";
+            printerIndex.value = index;
+            modalName.value = printer.name;
+            modalCompany.value = printer.company;
+            modalFloor.value = printer.floor;
+            modalIP.value = printer.ip;
+            modalBlack.value = printer.inks.black;
+            modalMagenta.value = printer.inks.magenta;
+            modalYellow.value = printer.inks.yellow;
+            modalBlue.value = printer.inks.blue;
+            printerModal.style.display = "flex";
+        }
+
+        // Διαγραφή Εκτυπωτή
+        function deletePrinter(index) {
+            if (confirm("Είστε σίγουρος ότι θέλετε να διαγράψετε αυτόν τον εκτυπωτή;")) {
+                printerData.printers.splice(index, 1);
+                saveData();
+                filterPrinters();
+            }
+        }
+
+        // Αποθήκευση Εκτυπωτή
+        function savePrinter() {
+            const index = printerIndex.value;
+            const printer = {
+                name: modalName.value,
+                company: modalCompany.value,
+                floor: modalFloor.value,
+                ip: modalIP.value,
+                inks: {
+                    black: modalBlack.value,
+                    magenta: modalMagenta.value,
+                    yellow: modalYellow.value,
+                    blue: modalBlue.value
+                }
+            };
+            
+            if (index === "") {
+                printerData.printers.push(printer);
+            } else {
+                printerData.printers[index] = printer;
+            }
+            
+            saveData();
+            filterPrinters();
+            printerModal.style.display = "none";
+        }
+
+        // Εξαγωγή σε Excel - Εκτυπωτές
+        function exportPrintersToExcel() {
+            const data = printerData.printers.map(printer => ({
+                "Όνομα": printer.name,
+                "Εταιρεία": printer.company,
+                "Όροφος": printer.floor,
+                "Διεύθυνση IP": printer.ip,
+                "Μαύρο Μελάνι": printer.inks.black,
+                "Ματζέντα Μελάνι": printer.inks.magenta,
+                "Κίτρινο Μελάνι": printer.inks.yellow,
+                "Μπλε Μελάνι": printer.inks.blue
+            }));
+            
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Εκτυπωτές");
+            XLSX.writeFile(wb, "Εκτυπωτές.xlsx");
+        }
+
+        // Εξαγωγή σε Excel - Μελάνια
+        function exportInkToExcel() {
+            const data = [];
+            
+            for (const company in inkInventory) {
+                for (const model in inkInventory[company]) {
+                    for (const color in inkInventory[company][model]) {
+                        data.push({
+                            "Εταιρεία": company,
+                            "Μοντέλο": model,
+                            "Χρώμα": color,
+                            "Κωδικός": inkInventory[company][model][color].code,
+                            "Ποσότητα": inkInventory[company][model][color].quantity
+                        });
+                    }
+                }
+            }
+            
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Απόθεμα Μελανιών");
+            XLSX.writeFile(wb, "Απόθεμα_Μελανιών.xlsx");
+        }
+
+        // Αποθήκευση Δεδομένων
+        function saveData() {
+            localStorage.setItem('printerData', JSON.stringify(printerData));
+            localStorage.setItem('inkInventory', JSON.stringify(inkInventory));
+        }
+
+        // Φόρτωση Δεδομένων
+        function loadData() {
+            const savedPrinterData = localStorage.getItem('printerData');
+            const savedInkInventory = localStorage.getItem('inkInventory');
+            
+            if (savedPrinterData) {
+                printerData = JSON.parse(savedPrinterData);
+            }
+            
+            if (savedInkInventory) {
+                inkInventory = JSON.parse(savedInkInventory);
+            }
+        }
+
+        // Εμφάνιση Notification
+        function showNotification(message, type = 'info') {
+            // Απλή υλοποίηση notification
+            alert(message);
+        }
+
+        // Tab Switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Απενεργοποίηση όλων των tabs
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(tc => tc.classList.remove('active'));
+                
+                // Ενεργοποίηση επιλεγμένου tab
+                tab.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Event Listeners
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            filterPrinters();
+        });
+        
+        resetBtn.addEventListener('click', function() {
+            floorSelect.value = '';
+            companySelect.value = '';
+            ipInput.value = '';
+            displayPrinters(printerData.printers);
+        });
+        
+        addPrinterBtn.addEventListener('click', openAddModal);
+        
+        closeModal.addEventListener('click', function() {
+            printerModal.style.display = "none";
+        });
+        
+        cancelModal.addEventListener('click', function() {
+            printerModal.style.display = "none";
+        });
+        
+        printerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            savePrinter();
+        });
+        
+        exportPrintersBtn.addEventListener('click', exportPrintersToExcel);
+        
+        exportInkBtn.addEventListener('click', exportInkToExcel);
+
+        // Κλείσιμο modal με κλικ έξω
+        window.addEventListener('click', function(e) {
+            if (e.target === printerModal) {
+                printerModal.style.display = "none";
+            }
+        });
+
+        // Αρχικοποίηση
+        loadData();
+        displayPrinters(printerData.printers);
+        displayInkInventory();
+    </script>
+</body>
+</html>

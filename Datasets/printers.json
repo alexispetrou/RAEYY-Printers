@@ -1,0 +1,52 @@
+{
+  "printers": [
+    {
+      "name": "xerox AltaLink® C8130",
+      "company": "xerox",
+      "floor":"2nd",
+      "ip": "10.2.0.30",
+      "inks": {
+        "magenta": "M123",
+        "yellow": "Y123",
+        "blue": "C123",
+        "black": "K123"
+      }
+    },
+    {
+      "name": "Printer2",
+      "company": "xerox",
+      "floor":"5th",
+      "ip": "10.2.0.26",
+      "inks": {
+        "magenta": "M456",
+        "yellow": "Y456",
+        "blue": "C456",
+        "black": "K456"
+      }
+    },
+    {
+      "name": "ricoh mpc3004",
+      "company": "ricoh",
+      "ip": "195.251.119.94",
+      "floor":"2nd",
+      "inks": {
+        "magenta": "M789",
+        "yellow": "Y789",
+        "blue": "C789",
+        "black": "K789"
+      }
+    },
+    {
+      "name": "sharp BP-50C26",
+      "company": "sharp",
+      "ip": "10.1.0.183",
+      "floor":"2nd",
+      "inks": {
+        "magenta": "M789",
+        "yellow": "Y789",
+        "blue": "C789",
+        "black": "K789"
+      }
+    }
+  ]
+}
