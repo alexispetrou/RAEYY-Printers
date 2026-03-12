@@ -617,6 +617,26 @@
             justify-content: center;
         }
 
+
+        .sync-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            color: var(--secondary);
+            font-size: 14px;
+        }
+
+        .sync-status {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
         /* Footer */
         footer {
             text-align: center;
@@ -721,8 +741,7 @@
             <div class="summary-item"><i class="fas fa-shield-halved"></i> <div><strong>Secure</strong> Εσωτερική χρήση</div></div>
             <div class="summary-item"><i class="fas fa-clock"></i> <div><strong>24/7</strong> Άμεση ενημέρωση αποθέματος</div></div>
         </section>
-
-
+        
         <div class="tabs">
             <button class="tab active" data-tab="printers-tab">
                 <i class="fas fa-print"></i> Εκτυπωτές
@@ -1047,6 +1066,116 @@
         const tabs = document.querySelectorAll('.tab');
         const tabContents = document.querySelectorAll('.tab-content');
 
+
+        // Προαιρετικός cloud συγχρονισμός (για GitHub Pages)
+        // 1) Δημιούργησε Supabase project
+        // 2) Table: app_state(id int primary key, data jsonb, updated_at timestamptz default now())
+        // 3) Βάλε row με id=1
+        // 4) Συμπλήρωσε τα παρακάτω και ενεργοποίησε το syncEnabled
+        const cloudConfig = {
+            syncEnabled: false,
+            supabaseUrl: '',
+            supabaseAnonKey: '',
+            table: 'app_state',
+            rowId: 1,
+            pollIntervalMs: 8000
+        };
+
+        let cloudPollingTimer = null;
+        const syncStatus = document.getElementById('syncStatus');
+
+        function setSyncStatus(message, isError = false) {
+            if (!syncStatus) return;
+            syncStatus.textContent = message;
+            syncStatus.style.color = isError ? 'var(--danger)' : 'var(--primary)';
+        }
+
+        function getPayload() {
+            return {
+                printerData,
+                inkInventory,
+                updatedAt: new Date().toISOString()
+            };
+        }
+
+        function applyPayload(payload) {
+            if (!payload) return;
+            if (payload.printerData) printerData = payload.printerData;
+            if (payload.inkInventory) inkInventory = payload.inkInventory;
+            filterPrinters();
+            displayInkInventory();
+        }
+
+        async function pushCloudState() {
+            if (!cloudConfig.syncEnabled) return;
+            if (!cloudConfig.supabaseUrl || !cloudConfig.supabaseAnonKey) return;
+
+            const url = `${cloudConfig.supabaseUrl}/rest/v1/${cloudConfig.table}?id=eq.${cloudConfig.rowId}`;
+            const body = {
+                id: cloudConfig.rowId,
+                data: getPayload(),
+                updated_at: new Date().toISOString()
+            };
+
+            const res = await fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': cloudConfig.supabaseAnonKey,
+                    'Authorization': `Bearer ${cloudConfig.supabaseAnonKey}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (!res.ok) {
+                throw new Error('Cloud save failed');
+            }
+        }
+
+        async function pullCloudState() {
+            if (!cloudConfig.syncEnabled) return;
+            if (!cloudConfig.supabaseUrl || !cloudConfig.supabaseAnonKey) return;
+
+            const url = `${cloudConfig.supabaseUrl}/rest/v1/${cloudConfig.table}?id=eq.${cloudConfig.rowId}&select=data`;
+            const res = await fetch(url, {
+                headers: {
+                    'apikey': cloudConfig.supabaseAnonKey,
+                    'Authorization': `Bearer ${cloudConfig.supabaseAnonKey}`
+                }
+            });
+
+            if (!res.ok) {
+                throw new Error('Cloud load failed');
+            }
+
+            const rows = await res.json();
+            if (rows.length && rows[0].data) {
+                applyPayload(rows[0].data);
+            }
+        }
+
+        async function initCloudSync() {
+            if (!cloudConfig.syncEnabled) {
+                setSyncStatus('Τοπική λειτουργία (localStorage)');
+                return;
+            }
+
+            try {
+                await pullCloudState();
+                setSyncStatus('Cloud sync ενεργό (Supabase)');
+                cloudPollingTimer = setInterval(async () => {
+                    try {
+                        await pullCloudState();
+                    } catch (err) {
+                        setSyncStatus('Σφάλμα cloud sync', true);
+                    }
+                }, cloudConfig.pollIntervalMs);
+            } catch (err) {
+                setSyncStatus('Cloud sync μη διαθέσιμο', true);
+            }
+        }
+
         // Εμφάνιση Εκτυπωτών
         function displayPrinters(printers) {
             printersGrid.innerHTML = '';
@@ -1186,7 +1315,7 @@
             
             // Event listeners για quantity controls
             document.querySelectorAll('.increase-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', async function() {
                     const company = this.getAttribute('data-company');
                     const model = this.getAttribute('data-model');
                     const color = this.getAttribute('data-color');
@@ -1208,7 +1337,7 @@
             });
             
             document.querySelectorAll('.update-quantity-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', async function() {
                     const company = this.getAttribute('data-company');
                     const model = this.getAttribute('data-model');
                     const color = this.getAttribute('data-color');
@@ -1217,7 +1346,7 @@
                     
                     if (!isNaN(newQuantity) && newQuantity >= 0) {
                         inkInventory[company][model][color].quantity = newQuantity;
-                        saveData();
+                        await saveData();
                         displayInkInventory();
                         showNotification(`Ενημερώθηκε το απόθεμα ${colorNames[color]} για ${company} ${model} σε ${newQuantity}`, 'success');
                     }
@@ -1274,16 +1403,16 @@
         }
 
         // Διαγραφή Εκτυπωτή
-        function deletePrinter(index) {
+        async function deletePrinter(index) {
             if (confirm("Είστε σίγουρος ότι θέλετε να διαγράψετε αυτόν τον εκτυπωτή;")) {
                 printerData.printers.splice(index, 1);
-                saveData();
+                await saveData();
                 filterPrinters();
             }
         }
 
         // Αποθήκευση Εκτυπωτή
-        function savePrinter() {
+        async function savePrinter() {
             const index = printerIndex.value;
             const printer = {
                 name: modalName.value,
@@ -1304,7 +1433,7 @@
                 printerData.printers[index] = printer;
             }
             
-            saveData();
+            await saveData();
             filterPrinters();
             printerModal.style.display = "none";
         }
@@ -1353,9 +1482,17 @@
         }
 
         // Αποθήκευση Δεδομένων
-        function saveData() {
+        async function saveData() {
             localStorage.setItem('printerData', JSON.stringify(printerData));
             localStorage.setItem('inkInventory', JSON.stringify(inkInventory));
+
+            if (cloudConfig.syncEnabled) {
+                try {
+                    await pushCloudState();
+                } catch (err) {
+                    setSyncStatus('Αποτυχία αποθήκευσης στο cloud', true);
+                }
+            }
         }
 
         // Φόρτωση Δεδομένων
@@ -1494,6 +1631,7 @@
         loadData();
         displayPrinters(printerData.printers);
         displayInkInventory();
+        initCloudSync();
     </script>
 </body>
 </html>
