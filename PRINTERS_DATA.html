@@ -5,30 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Σύστημα Διαχείρισης Εκτυπωτών & Μελανιών</title>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="./app-config.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --secondary: #64748b;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --light: #f8fafc;
-            --dark: #1e293b;
-            --border: #e2e8f0;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --primary: #00356b;
+            --primary-dark: #022445;
+            --primary-soft: #0c4f8a;
+            --accent: #0ea5e9;
+            --secondary: #4f647a;
+            --success: #0e9f6e;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --light: #f5f9ff;
+            --dark: #0f2440;
+            --border: #d6e3f1;
+            --shadow: 0 10px 25px -16px rgba(0, 53, 107, 0.6);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            background: linear-gradient(155deg, #edf5ff 0%, #dbeafe 55%, #f8fbff 100%);
             color: var(--dark);
             min-height: 100vh;
         }
@@ -39,9 +45,69 @@
             padding: 20px;
         }
 
+
+        .gov-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .summary-strip {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+            color: white;
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .summary-item strong {
+            display: block;
+            font-size: 18px;
+            line-height: 1.1;
+        }
+
+
+        .sync-banner {
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin: -8px 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            color: var(--secondary);
+            font-size: 14px;
+        }
+
+        .sync-status {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
         /* Header */
         .header {
-            background: white;
+            background: linear-gradient(120deg, var(--primary) 0%, var(--primary-soft) 100%);
             border-radius: 16px;
             padding: 24px;
             margin-bottom: 24px;
@@ -49,7 +115,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-left: 6px solid var(--primary);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: white;
         }
 
         .header-content {
@@ -61,8 +128,9 @@
         .logo {
             width: 70px;
             height: 70px;
-            background: var(--primary);
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -73,12 +141,12 @@
         .header-text h1 {
             font-size: 28px;
             font-weight: 700;
-            color: var(--dark);
+            color: white;
             margin-bottom: 4px;
         }
 
         .header-text p {
-            color: var(--secondary);
+            color: rgba(255, 255, 255, 0.85);
             font-size: 16px;
         }
 
@@ -90,9 +158,10 @@
         /* Tabs */
         .tabs {
             display: flex;
-            background: white;
+            background: rgba(255, 255, 255, 0.92);
             border-radius: 16px;
             padding: 8px;
+            border: 1px solid var(--border);
             margin-bottom: 24px;
             box-shadow: var(--shadow);
         }
@@ -125,7 +194,7 @@
 
         /* Controls */
         .controls {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 16px;
             padding: 24px;
             margin-bottom: 24px;
@@ -227,7 +296,7 @@
         }
 
         .printer-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.97);
             border-radius: 16px;
             overflow: hidden;
             box-shadow: var(--shadow);
@@ -241,7 +310,7 @@
         }
 
         .printer-header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 65%, #0b3f73 100%);
             color: white;
             padding: 20px;
             position: relative;
@@ -352,7 +421,7 @@
 
         /* Ink Inventory */
         .ink-inventory {
-            background: white;
+            background: rgba(255, 255, 255, 0.97);
             border-radius: 16px;
             padding: 24px;
             margin-bottom: 24px;
@@ -493,7 +562,7 @@
         }
 
         .modal-header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 65%, #0b3f73 100%);
             color: white;
             padding: 24px;
             display: flex;
@@ -645,8 +714,9 @@
                     <i class="fas fa-print"></i>
                 </div>
                 <div class="header-text">
+                    <span class="gov-badge"><i class="fas fa-landmark"></i> Ρυθμιστική Αρχή Αποβλήτων, Ενέργειας και Υδάτων</span>
                     <h1>Σύστημα Διαχείρισης Εκτυπωτών & Μελανιών</h1>
-                    <p>Διαχείριση εκτυπωτών και αποθέματος μελανιών</p>
+                    <p>Εσωτερική πλατφόρμα υποστήριξης εξοπλισμού ΡΑΑΕΥ</p>
                 </div>
             </div>
             <div class="export-buttons">
@@ -656,9 +726,28 @@
                 <button class="btn btn-primary" id="exportInkBtn">
                     <i class="fas fa-file-excel"></i> Μελάνια
                 </button>
+                <button class="btn btn-secondary" id="exportStateBtn">
+                    <i class="fas fa-file-export"></i> Backup JSON
+                </button>
+                <button class="btn btn-warning" id="importStateBtn">
+                    <i class="fas fa-file-import"></i> Εισαγωγή JSON
+                </button>
             </div>
+            <input type="file" id="importStateInput" accept="application/json" style="display:none;">
         </header>
-        
+
+        <section class="summary-strip">
+            <div class="summary-item"><i class="fas fa-sitemap"></i> <div><strong>7</strong> Όροφοι κάλυψης</div></div>
+            <div class="summary-item"><i class="fas fa-network-wired"></i> <div><strong>LAN</strong> Εποπτεία εκτυπωτών</div></div>
+            <div class="summary-item"><i class="fas fa-shield-halved"></i> <div><strong>Secure</strong> Εσωτερική χρήση</div></div>
+            <div class="summary-item"><i class="fas fa-clock"></i> <div><strong>24/7</strong> Άμεση ενημέρωση αποθέματος</div></div>
+        </section>
+
+        <section class="sync-banner">
+            <div><i class="fas fa-globe"></i> Κοινός συγχρονισμός για όλους τους χρήστες (GitHub Pages + Supabase Free)</div>
+            <div class="sync-status" id="syncStatus">Τοπική λειτουργία</div>
+        </section>
+
         <div class="tabs">
             <button class="tab active" data-tab="printers-tab">
                 <i class="fas fa-print"></i> Εκτυπωτές
@@ -736,7 +825,7 @@
         </div>
         
         <footer>
-            <p>Σύστημα Διαχείρισης Εκτυπωτών & Μελανιών &copy; 2025 - Αλέξης Πέτρου</p>
+            <p>ΡΑΑΕΥ - Σύστημα Διαχείρισης Εκτυπωτών & Μελανιών &copy; 2025</p>
         </footer>
     </div>
 
@@ -977,8 +1066,124 @@
         const modalBlue = document.getElementById('modalBlue');
         const exportPrintersBtn = document.getElementById('exportPrintersBtn');
         const exportInkBtn = document.getElementById('exportInkBtn');
+        const exportStateBtn = document.getElementById('exportStateBtn');
+        const importStateBtn = document.getElementById('importStateBtn');
+        const importStateInput = document.getElementById('importStateInput');
+        const syncStatus = document.getElementById('syncStatus');
         const tabs = document.querySelectorAll('.tab');
         const tabContents = document.querySelectorAll('.tab-content');
+
+        // Ρυθμίσεις cloud sync (δωρεάν με Supabase)
+        const cloudConfig = Object.assign({
+            enabled: false,
+            supabaseUrl: '',
+            supabaseAnonKey: '',
+            table: 'app_state',
+            rowId: 1,
+            pollIntervalMs: 5000
+        }, window.CLOUD_CONFIG || {});
+
+        let cloudPollTimer = null;
+        let lastCloudUpdatedAt = null;
+
+        function setSyncStatus(message, isError = false) {
+            if (!syncStatus) return;
+            syncStatus.textContent = message;
+            syncStatus.style.color = isError ? 'var(--danger)' : 'var(--primary)';
+        }
+
+        function getCloudHeaders(includeJson = false) {
+            const headers = {
+                'apikey': cloudConfig.supabaseAnonKey,
+                'Authorization': `Bearer ${cloudConfig.supabaseAnonKey}`
+            };
+            if (includeJson) {
+                headers['Content-Type'] = 'application/json';
+                headers['Prefer'] = 'return=representation';
+            }
+            return headers;
+        }
+
+        function getStatePayload() {
+            return { printerData, inkInventory };
+        }
+
+        function applyStatePayload(payload) {
+            if (!payload) return;
+            if (payload.printerData) printerData = payload.printerData;
+            if (payload.inkInventory) inkInventory = payload.inkInventory;
+            filterPrinters();
+            displayInkInventory();
+        }
+
+        async function pushCloudState() {
+            if (!cloudConfig.enabled) return;
+            const url = `${cloudConfig.supabaseUrl}/rest/v1/${cloudConfig.table}?id=eq.${cloudConfig.rowId}`;
+            const body = {
+                data: getStatePayload(),
+                updated_at: new Date().toISOString()
+            };
+
+            const res = await fetch(url, {
+                method: 'PATCH',
+                headers: getCloudHeaders(true),
+                body: JSON.stringify(body)
+            });
+
+            if (!res.ok) {
+                throw new Error('Cloud update failed');
+            }
+
+            const data = await res.json();
+            if (data[0] && data[0].updated_at) {
+                lastCloudUpdatedAt = data[0].updated_at;
+            }
+        }
+
+        async function pullCloudState() {
+            if (!cloudConfig.enabled) return;
+            const url = `${cloudConfig.supabaseUrl}/rest/v1/${cloudConfig.table}?id=eq.${cloudConfig.rowId}&select=data,updated_at`;
+            const res = await fetch(url, { headers: getCloudHeaders() });
+
+            if (!res.ok) {
+                throw new Error('Cloud fetch failed');
+            }
+
+            const rows = await res.json();
+            if (!rows.length || !rows[0].data) return;
+
+            const remoteUpdatedAt = rows[0].updated_at || null;
+            if (remoteUpdatedAt && lastCloudUpdatedAt && remoteUpdatedAt <= lastCloudUpdatedAt) {
+                return;
+            }
+
+            applyStatePayload(rows[0].data);
+            if (remoteUpdatedAt) {
+                lastCloudUpdatedAt = remoteUpdatedAt;
+            }
+            saveData(false);
+        }
+
+        async function initCloudSync() {
+            if (!cloudConfig.enabled || !cloudConfig.supabaseUrl || !cloudConfig.supabaseAnonKey) {
+                setSyncStatus('Τοπική λειτουργία (μόνο browser)');
+                return;
+            }
+
+            try {
+                await pullCloudState();
+                setSyncStatus('Cloud sync ενεργό (δωρεάν Supabase)');
+                cloudPollTimer = setInterval(async () => {
+                    try {
+                        await pullCloudState();
+                    } catch (error) {
+                        setSyncStatus('Σφάλμα συγχρονισμού', true);
+                    }
+                }, cloudConfig.pollIntervalMs);
+            } catch (error) {
+                setSyncStatus('Cloud sync μη διαθέσιμο', true);
+            }
+        }
 
         // Εμφάνιση Εκτυπωτών
         function displayPrinters(printers) {
@@ -1284,11 +1489,16 @@
             XLSX.utils.book_append_sheet(wb, ws, "Απόθεμα Μελανιών");
             XLSX.writeFile(wb, "Απόθεμα_Μελανιών.xlsx");
         }
-
         // Αποθήκευση Δεδομένων
-        function saveData() {
+        function saveData(pushToCloud = true) {
             localStorage.setItem('printerData', JSON.stringify(printerData));
             localStorage.setItem('inkInventory', JSON.stringify(inkInventory));
+
+            if (pushToCloud && cloudConfig.enabled) {
+                pushCloudState().catch(() => {
+                    setSyncStatus('Αποτυχία αποθήκευσης στο cloud', true);
+                });
+            }
         }
 
         // Φόρτωση Δεδομένων
@@ -1303,6 +1513,50 @@
             if (savedInkInventory) {
                 inkInventory = JSON.parse(savedInkInventory);
             }
+        }
+
+
+
+        // Εξαγωγή/Εισαγωγή ολόκληρης κατάστασης (χωρίς server)
+        function exportStateToJson() {
+            const snapshot = {
+                exportedAt: new Date().toISOString(),
+                printerData,
+                inkInventory
+            };
+
+            const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'printers_state_backup.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showNotification('Το backup JSON δημιουργήθηκε επιτυχώς.', 'success');
+        }
+
+        function importStateFromJson(file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const payload = JSON.parse(event.target.result);
+                    if (!payload.printerData || !payload.inkInventory) {
+                        throw new Error('Μη έγκυρο αρχείο');
+                    }
+
+                    printerData = payload.printerData;
+                    inkInventory = payload.inkInventory;
+                    saveData();
+                    filterPrinters();
+                    displayInkInventory();
+                    showNotification('Η εισαγωγή ολοκληρώθηκε.', 'success');
+                } catch (error) {
+                    showNotification('Αποτυχία εισαγωγής JSON.', 'error');
+                }
+            };
+            reader.readAsText(file);
         }
 
         // Εμφάνιση Notification
@@ -1358,6 +1612,20 @@
         
         exportInkBtn.addEventListener('click', exportInkToExcel);
 
+        exportStateBtn.addEventListener('click', exportStateToJson);
+
+        importStateBtn.addEventListener('click', function() {
+            importStateInput.click();
+        });
+
+        importStateInput.addEventListener('change', function(e) {
+            const file = e.target.files && e.target.files[0];
+            if (file) {
+                importStateFromJson(file);
+            }
+            importStateInput.value = '';
+        });
+
         // Κλείσιμο modal με κλικ έξω
         window.addEventListener('click', function(e) {
             if (e.target === printerModal) {
@@ -1369,6 +1637,7 @@
         loadData();
         displayPrinters(printerData.printers);
         displayInkInventory();
+        initCloudSync();
     </script>
 </body>
 </html>
