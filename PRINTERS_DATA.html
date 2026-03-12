@@ -725,7 +725,14 @@
                 <button class="btn btn-primary" id="exportInkBtn">
                     <i class="fas fa-file-excel"></i> Μελάνια
                 </button>
+                <button class="btn btn-secondary" id="exportStateBtn">
+                    <i class="fas fa-file-export"></i> Backup JSON
+                </button>
+                <button class="btn btn-warning" id="importStateBtn">
+                    <i class="fas fa-file-import"></i> Εισαγωγή JSON
+                </button>
             </div>
+            <input type="file" id="importStateInput" accept="application/json" style="display:none;">
         </header>
 
         <section class="summary-strip">
@@ -1053,6 +1060,9 @@
         const modalBlue = document.getElementById('modalBlue');
         const exportPrintersBtn = document.getElementById('exportPrintersBtn');
         const exportInkBtn = document.getElementById('exportInkBtn');
+        const exportStateBtn = document.getElementById('exportStateBtn');
+        const importStateBtn = document.getElementById('importStateBtn');
+        const importStateInput = document.getElementById('importStateInput');
         const tabs = document.querySelectorAll('.tab');
         const tabContents = document.querySelectorAll('.tab-content');
 
@@ -1499,6 +1509,50 @@
             }
         }
 
+
+
+        // Εξαγωγή/Εισαγωγή ολόκληρης κατάστασης (χωρίς server)
+        function exportStateToJson() {
+            const snapshot = {
+                exportedAt: new Date().toISOString(),
+                printerData,
+                inkInventory
+            };
+
+            const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'printers_state_backup.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showNotification('Το backup JSON δημιουργήθηκε επιτυχώς.', 'success');
+        }
+
+        function importStateFromJson(file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const payload = JSON.parse(event.target.result);
+                    if (!payload.printerData || !payload.inkInventory) {
+                        throw new Error('Μη έγκυρο αρχείο');
+                    }
+
+                    printerData = payload.printerData;
+                    inkInventory = payload.inkInventory;
+                    saveData();
+                    filterPrinters();
+                    displayInkInventory();
+                    showNotification('Η εισαγωγή ολοκληρώθηκε.', 'success');
+                } catch (error) {
+                    showNotification('Αποτυχία εισαγωγής JSON.', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
         // Εμφάνιση Notification
         function showNotification(message, type = 'info') {
             // Απλή υλοποίηση notification
@@ -1551,6 +1605,20 @@
         exportPrintersBtn.addEventListener('click', exportPrintersToExcel);
         
         exportInkBtn.addEventListener('click', exportInkToExcel);
+
+        exportStateBtn.addEventListener('click', exportStateToJson);
+
+        importStateBtn.addEventListener('click', function() {
+            importStateInput.click();
+        });
+
+        importStateInput.addEventListener('change', function(e) {
+            const file = e.target.files && e.target.files[0];
+            if (file) {
+                importStateFromJson(file);
+            }
+            importStateInput.value = '';
+        });
 
         // Κλείσιμο modal με κλικ έξω
         window.addEventListener('click', function(e) {
