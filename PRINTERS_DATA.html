@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Σύστημα Διαχείρισης Εκτυπωτών & Μελανιών</title>
+    <title>Σύστημα Διαχείρισης Εκτυπωτών</title>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <script src="./app-config.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -674,9 +674,6 @@
                 margin: 20px;
             }
 
-            .tabs {
-                flex-direction: column;
-            }
         }
 
         /* No Results */
@@ -723,8 +720,11 @@
                 <button class="btn btn-success" id="exportPrintersBtn">
                     <i class="fas fa-file-excel"></i> Εκτυπωτές
                 </button>
-                <button class="btn btn-primary" id="exportInkBtn">
-                    <i class="fas fa-file-excel"></i> Μελάνια
+                <button class="btn btn-secondary" id="exportStateBtn">
+                    <i class="fas fa-file-export"></i> Backup JSON
+                </button>
+                <button class="btn btn-warning" id="importStateBtn">
+                    <i class="fas fa-file-import"></i> Εισαγωγή JSON
                 </button>
                 <button class="btn btn-secondary" id="exportStateBtn">
                     <i class="fas fa-file-export"></i> Backup JSON
@@ -752,8 +752,20 @@
             </button>
         </div>
 
-        <!-- Κατάστημα Εκτυπωτών -->
-        <div class="tab-content active" id="printers-tab">
+        <section class="summary-strip">
+            <div class="summary-item"><i class="fas fa-sitemap"></i> <div><strong>7</strong> Όροφοι κάλυψης</div></div>
+            <div class="summary-item"><i class="fas fa-network-wired"></i> <div><strong>LAN</strong> Εποπτεία εκτυπωτών</div></div>
+            <div class="summary-item"><i class="fas fa-shield-halved"></i> <div><strong>Secure</strong> Εσωτερική χρήση</div></div>
+            <div class="summary-item"><i class="fas fa-clock"></i> <div><strong>24/7</strong> Άμεση ενημέρωση αποθέματος</div></div>
+        </section>
+
+        <section class="sync-banner">
+            <div><i class="fas fa-globe"></i> Κοινός συγχρονισμός για όλους τους χρήστες (GitHub Pages + Supabase Free)</div>
+            <div class="sync-status" id="syncStatus">Τοπική λειτουργία</div>
+        </section>
+
+        <!-- Εκτυπωτές -->
+        <div id="printers-tab">
             <section class="controls">
                 <form class="search-form" id="searchForm">
                     <div class="form-group">
@@ -809,16 +821,6 @@
             </section>
         </div>
 
-        <!-- Κατάστημα Μελανιών -->
-        <div class="tab-content" id="ink-tab">
-            <section class="ink-inventory">
-                <h2 style="margin-bottom: 20px;"><i class="fas fa-boxes"></i> Διαχείριση Αποθέματος Μελανιών</h2>
-                <div class="ink-grid" id="inkGrid">
-                    <!-- Οι κάρτες μελανιών θα εισαχθούν δυναμικά εδώ -->
-                </div>
-            </section>
-        </div>
-        
         <footer>
             <p>ΡΑΑΕΥ - Σύστημα Διαχείρισης Εκτυπωτών & Μελανιών &copy; 2025</p>
         </footer>
@@ -876,19 +878,19 @@
                         <div class="ink-inputs">
                             <div class="ink-input">
                                 <label for="modalBlack">Μαύρο</label>
-                                <input type="text" id="modalBlack" required>
+                                <input type="text" id="modalBlack">
                             </div>
                             <div class="ink-input">
                                 <label for="modalMagenta">Ματζέντα</label>
-                                <input type="text" id="modalMagenta" required>
+                                <input type="text" id="modalMagenta">
                             </div>
                             <div class="ink-input">
                                 <label for="modalYellow">Κίτρινο</label>
-                                <input type="text" id="modalYellow" required>
+                                <input type="text" id="modalYellow">
                             </div>
                             <div class="ink-input">
                                 <label for="modalBlue">Μπλε</label>
-                                <input type="text" id="modalBlue" required>
+                                <input type="text" id="modalBlue">
                             </div>
                         </div>
                     </div>
@@ -905,140 +907,18 @@
         </div>
     </div>
 
+    
     <script>
-        // Δεδομένα Εκτυπωτών
         let printerData = {
-            "printers": [
-                {
-                    "name": "Lexmark CX735ADSE",
-                    "company": "lexmark",
-                    "floor": "1st",
-                    "ip": "10.1.0.84",
-                    "inks": {
-                        "magenta": "M123",
-                        "yellow": "Y123",
-                        "blue": "C123",
-                        "black": "K123"
-                    }
-                },
-                {
-                    "name": "Lexmark CX735ADSE",
-                    "company": "lexmark",
-                    "floor": "1st",
-                    "ip": "10.1.0.132",
-                    "inks": {
-                        "magenta": "M123",
-                        "yellow": "Y123",
-                        "blue": "C123",
-                        "black": "K123"
-                    }
-                },
-                {
-                    "name": "Xerox AltaLink C8130",
-                    "company": "xerox",
-                    "floor": "2nd",
-                    "ip": "10.2.0.30",
-                    "inks": {
-                        "magenta": "M123",
-                        "yellow": "Y123",
-                        "blue": "C123",
-                        "black": "K123"
-                    }
-                },
-                {
-                    "name": "Ricoh MPC3004",
-                    "company": "ricoh",
-                    "ip": "195.251.119.94",
-                    "floor": "2nd",
-                    "inks": {
-                        "magenta": "M789",
-                        "yellow": "Y789",
-                        "blue": "C789",
-                        "black": "K789"
-                    }
-                },
-                {
-                    "name": "Sharp BP-50C26",
-                    "company": "sharp",
-                    "ip": "10.1.0.183",
-                    "floor": "2nd",
-                    "inks": {
-                        "magenta": "M789",
-                        "yellow": "Y789",
-                        "blue": "C789",
-                        "black": "K789"
-                    }
-                }
+            printers: [
+                { name: "Lexmark CX735ADSE", company: "lexmark", floor: "1st", ip: "10.1.0.84", inks: { black: "K123", magenta: "M123", yellow: "Y123", blue: "C123" } },
+                { name: "Lexmark CX735ADSE", company: "lexmark", floor: "1st", ip: "10.1.0.132", inks: { black: "K123", magenta: "M123", yellow: "Y123", blue: "C123" } },
+                { name: "Xerox AltaLink C8130", company: "xerox", floor: "2nd", ip: "10.2.0.30", inks: { black: "K123", magenta: "M123", yellow: "Y123", blue: "C123" } },
+                { name: "Ricoh MPC3004", company: "ricoh", floor: "2nd", ip: "195.251.119.94", inks: { black: "K789", magenta: "M789", yellow: "Y789", blue: "C789" } }
             ]
         };
 
-        // Απόθεμα Μελανιών
-        let inkInventory = {
-            "xerox": {
-                "AltaLink C8130": {
-                    "black": { quantity: 15, code: "K123" },
-                    "magenta": { quantity: 12, code: "M123" },
-                    "yellow": { quantity: 10, code: "Y123" },
-                    "blue": { quantity: 14, code: "C123" }
-                }
-            },
-            "ricoh": {
-                "MPC3004": {
-                    "black": { quantity: 20, code: "K789" },
-                    "magenta": { quantity: 18, code: "M789" },
-                    "yellow": { quantity: 22, code: "Y789" },
-                    "blue": { quantity: 19, code: "C789" }
-                }
-            },
-            "sharp": {
-                "BP-50C26": {
-                    "black": { quantity: 5, code: "K789" },
-                    "magenta": { quantity: 4, code: "M789" },
-                    "yellow": { quantity: 6, code: "Y789" },
-                    "blue": { quantity: 5, code: "C789" }
-                },
-                "MX-3050V": {
-                    "black": { quantity: 12, code: "K789" },
-                    "magenta": { quantity: 10, code: "M789" },
-                    "yellow": { quantity: 11, code: "Y789" },
-                    "blue": { quantity: 9, code: "C789" }
-                }
-            },
-            "lexmark": {
-                "CX735ADSE": {
-                    "black": { quantity: 25, code: "K123" },
-                    "magenta": { quantity: 23, code: "M123" },
-                    "yellow": { quantity: 24, code: "Y123" },
-                    "blue": { quantity: 22, code: "C123" }
-                }
-            },
-            "oki": {
-                "MC363": {
-                    "black": { quantity: 7, code: "K789" },
-                    "magenta": { quantity: 6, code: "M789" },
-                    "yellow": { quantity: 8, code: "Y789" },
-                    "blue": { quantity: 5, code: "C789" }
-                },
-                "MB472": {
-                    "black": { quantity: 9, code: "K789" },
-                    "magenta": { quantity: 8, code: "M789" },
-                    "yellow": { quantity: 10, code: "Y789" },
-                    "blue": { quantity: 7, code: "C789" }
-                }
-            },
-            "monica": {
-                "C300i": {
-                    "black": { quantity: 3, code: "K789" },
-                    "magenta": { quantity: 2, code: "M789" },
-                    "yellow": { quantity: 4, code: "Y789" },
-                    "blue": { quantity: 3, code: "C789" }
-                }
-            }
-        };
-
-        // Στοιχεία DOM
         const printersGrid = document.getElementById('printersGrid');
-        const inkGrid = document.getElementById('inkGrid');
         const searchForm = document.getElementById('searchForm');
         const resetBtn = document.getElementById('resetBtn');
         const floorSelect = document.getElementById('floor');
@@ -1180,89 +1060,33 @@
         // Εμφάνιση Εκτυπωτών
         function displayPrinters(printers) {
             printersGrid.innerHTML = '';
-            
-            if (printers.length === 0) {
-                printersGrid.innerHTML = `
-                    <div class="no-results">
-                        <i class="fas fa-print"></i>
-                        <h3>Δεν βρέθηκαν εκτυπωτές</h3>
-                        <p>Δοκιμάστε να αλλάξετε τα κριτήρια αναζήτησης</p>
-                    </div>
-                `;
+            if (!printers.length) {
+                printersGrid.innerHTML = `<div class="no-results"><i class="fas fa-print"></i><h3>Δεν βρέθηκαν εκτυπωτές</h3><p>Δοκιμάστε να αλλάξετε τα κριτήρια αναζήτησης</p></div>`;
                 return;
             }
-            
             printers.forEach((printer, index) => {
-                const printerCard = document.createElement('div');
-                printerCard.className = 'printer-card';
-                
-                printerCard.innerHTML = `
+                const inks = normalizedInks(printer.inks || {});
+                const card = document.createElement('div');
+                card.className = 'printer-card';
+                card.innerHTML = `
                     <div class="printer-header">
                         <div class="printer-name">${printer.name}</div>
-                        <div class="printer-company">
-                            <i class="fas fa-industry"></i>
-                            ${printer.company.charAt(0).toUpperCase() + printer.company.slice(1)}
-                        </div>
+                        <div class="printer-company"><i class="fas fa-industry"></i>${printer.company.charAt(0).toUpperCase() + printer.company.slice(1)}</div>
                         <div class="printer-status">Ενεργός</div>
                     </div>
                     <div class="printer-details">
-                        <div class="detail-row">
-                            <span class="detail-label"><i class="fas fa-building"></i> Όροφος</span>
-                            <span class="detail-value">${printer.floor}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label"><i class="fas fa-network-wired"></i> IP</span>
-                            <span class="detail-value">${printer.ip}</span>
-                        </div>
-                        <div class="inks-section">
-                            <div class="inks-title"><i class="fas fa-palette"></i> Μελάνια</div>
-                            <div class="inks-grid">
-                                <div class="ink-item ink-black">
-                                    <span>Μαύρο</span>
-                                    <span class="ink-code">${printer.inks.black}</span>
-                                </div>
-                                <div class="ink-item ink-magenta">
-                                    <span>Ματζέντα</span>
-                                    <span class="ink-code">${printer.inks.magenta}</span>
-                                </div>
-                                <div class="ink-item ink-yellow">
-                                    <span>Κίτρινο</span>
-                                    <span class="ink-code">${printer.inks.yellow}</span>
-                                </div>
-                                <div class="ink-item ink-blue">
-                                    <span>Μπλε</span>
-                                    <span class="ink-code">${printer.inks.blue}</span>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="detail-row"><span class="detail-label"><i class="fas fa-building"></i> Όροφος</span><span class="detail-value">${printer.floor}</span></div>
+                        <div class="detail-row"><span class="detail-label"><i class="fas fa-network-wired"></i> IP</span><span class="detail-value">${printer.ip}</span></div>
+                        ${renderInkSection(inks)}
                     </div>
                     <div class="printer-actions">
-                        <button class="btn btn-warning edit-btn" data-index="${index}">
-                            <i class="fas fa-edit"></i> Επεξεργασία
-                        </button>
-                        <button class="btn btn-danger delete-btn" data-index="${index}">
-                            <i class="fas fa-trash"></i> Διαγραφή
-                        </button>
-                    </div>
-                `;
-                
-                printersGrid.appendChild(printerCard);
+                        <button class="btn btn-warning edit-btn" data-index="${index}"><i class="fas fa-edit"></i> Επεξεργασία</button>
+                        <button class="btn btn-danger delete-btn" data-index="${index}"><i class="fas fa-trash"></i> Διαγραφή</button>
+                    </div>`;
+                printersGrid.appendChild(card);
             });
-            
-            // Προσθήκη event listeners στα κουμπιά
-            document.querySelectorAll('.edit-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const index = this.getAttribute('data-index');
-                    editPrinter(index);
-                });
-            });
-            
-            document.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const index = this.getAttribute('data-index');
-                    deletePrinter(index);
-                });
-            });
+            document.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', () => editPrinter(b.dataset.index)));
+            document.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', () => deletePrinter(b.dataset.index)));
         }
 
         // Εμφάνιση Αποθέματος Μελανιών
@@ -1360,37 +1184,25 @@
             const floorValue = floorSelect.value.toLowerCase();
             const companyValue = companySelect.value.toLowerCase();
             const ipValue = ipInput.value.toLowerCase();
-            
-            const filteredPrinters = printerData.printers.filter(printer => {
-                const matchesFloor = !floorValue || printer.floor.toLowerCase() === floorValue;
-                const matchesCompany = !companyValue || printer.company.toLowerCase() === companyValue;
-                const matchesIP = !ipValue || printer.ip.toLowerCase().includes(ipValue);
-                
-                return matchesFloor && matchesCompany && matchesIP;
-            });
-            
-            displayPrinters(filteredPrinters);
+            const filtered = printerData.printers.filter(printer =>
+                (!floorValue || printer.floor.toLowerCase() === floorValue) &&
+                (!companyValue || printer.company.toLowerCase() === companyValue) &&
+                (!ipValue || printer.ip.toLowerCase().includes(ipValue))
+            );
+            displayPrinters(filtered);
         }
 
-        // Προσθήκη Νέου Εκτυπωτή
         function openAddModal() {
-            modalTitle.textContent = "Προσθήκη Νέου Εκτυπωτή";
-            printerIndex.value = "";
-            modalName.value = "";
-            modalCompany.value = "";
-            modalFloor.value = "";
-            modalIP.value = "";
-            modalBlack.value = "";
-            modalMagenta.value = "";
-            modalYellow.value = "";
-            modalBlue.value = "";
-            printerModal.style.display = "flex";
+            modalTitle.textContent = 'Προσθήκη Νέου Εκτυπωτή';
+            printerForm.reset();
+            printerIndex.value = '';
+            printerModal.style.display = 'flex';
         }
 
-        // Επεξεργασία Εκτυπωτή
         function editPrinter(index) {
-            const printer = printerData.printers[index];
-            modalTitle.textContent = "Επεξεργασία Εκτυπωτή";
+            const p = printerData.printers[index];
+            const inks = normalizedInks(p.inks || {});
+            modalTitle.textContent = 'Επεξεργασία Εκτυπωτή';
             printerIndex.value = index;
             modalName.value = printer.name;
             modalCompany.value = printer.company;
@@ -1436,50 +1248,24 @@
             
             await saveData();
             filterPrinters();
-            printerModal.style.display = "none";
+            printerModal.style.display = 'none';
         }
 
-        // Εξαγωγή σε Excel - Εκτυπωτές
         function exportPrintersToExcel() {
             const data = printerData.printers.map(printer => ({
-                "Όνομα": printer.name,
-                "Εταιρεία": printer.company,
-                "Όροφος": printer.floor,
-                "Διεύθυνση IP": printer.ip,
-                "Μαύρο Μελάνι": printer.inks.black,
-                "Ματζέντα Μελάνι": printer.inks.magenta,
-                "Κίτρινο Μελάνι": printer.inks.yellow,
-                "Μπλε Μελάνι": printer.inks.blue
+                'Όνομα': printer.name,
+                'Εταιρεία': printer.company,
+                'Όροφος': printer.floor,
+                'Διεύθυνση IP': printer.ip,
+                'Μαύρο Μελάνι (προαιρετικό)': (printer.inks && printer.inks.black) || '',
+                'Ματζέντα Μελάνι (προαιρετικό)': (printer.inks && printer.inks.magenta) || '',
+                'Κίτρινο Μελάνι (προαιρετικό)': (printer.inks && printer.inks.yellow) || '',
+                'Μπλε Μελάνι (προαιρετικό)': (printer.inks && printer.inks.blue) || ''
             }));
-            
             const ws = XLSX.utils.json_to_sheet(data);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Εκτυπωτές");
-            XLSX.writeFile(wb, "Εκτυπωτές.xlsx");
-        }
-
-        // Εξαγωγή σε Excel - Μελάνια
-        function exportInkToExcel() {
-            const data = [];
-            
-            for (const company in inkInventory) {
-                for (const model in inkInventory[company]) {
-                    for (const color in inkInventory[company][model]) {
-                        data.push({
-                            "Εταιρεία": company,
-                            "Μοντέλο": model,
-                            "Χρώμα": color,
-                            "Κωδικός": inkInventory[company][model][color].code,
-                            "Ποσότητα": inkInventory[company][model][color].quantity
-                        });
-                    }
-                }
-            }
-            
-            const ws = XLSX.utils.json_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Απόθεμα Μελανιών");
-            XLSX.writeFile(wb, "Απόθεμα_Μελανιών.xlsx");
+            XLSX.utils.book_append_sheet(wb, ws, 'Εκτυπωτές');
+            XLSX.writeFile(wb, 'Εκτυπωτές.xlsx');
         }
         // Αποθήκευση Δεδομένων
         async function saveData() {
@@ -1495,17 +1281,76 @@
             }
         }
 
-        // Φόρτωση Δεδομένων
         function loadData() {
-            const savedPrinterData = localStorage.getItem('printerData');
-            const savedInkInventory = localStorage.getItem('inkInventory');
-            
-            if (savedPrinterData) {
-                printerData = JSON.parse(savedPrinterData);
+            const saved = localStorage.getItem('printerData');
+            if (saved) printerData = JSON.parse(saved);
+            printerData.printers = (printerData.printers || []).map(p => ({ ...p, inks: normalizedInks(p.inks || {}) }));
+        }
+
+        function exportStateToJson() {
+            const snapshot = { exportedAt: new Date().toISOString(), printerData };
+            const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'printers_state_backup.json';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            showNotification('Το backup JSON δημιουργήθηκε επιτυχώς.', 'success');
+        }
+
+        function importStateFromJson(file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const payload = JSON.parse(event.target.result);
+                    if (!payload.printerData) throw new Error('Μη έγκυρο αρχείο');
+                    printerData = payload.printerData;
+                    printerData.printers = (printerData.printers || []).map(p => ({ ...p, inks: normalizedInks(p.inks || {}) }));
+                    saveData();
+                    filterPrinters();
+                    showNotification('Η εισαγωγή ολοκληρώθηκε.', 'success');
+                } catch {
+                    showNotification('Αποτυχία εισαγωγής JSON.', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        async function pushCloudState() {
+            const url = `${cloudConfig.supabaseUrl}/rest/v1/${cloudConfig.table}?id=eq.${cloudConfig.rowId}`;
+            const body = { data: { printerData }, updated_at: new Date().toISOString() };
+            const res = await fetch(url, { method: 'PATCH', headers: cloudHeaders(true), body: JSON.stringify(body) });
+            if (!res.ok) throw new Error('Cloud update failed');
+            const rows = await res.json();
+            if (rows[0] && rows[0].updated_at) lastCloudUpdatedAt = rows[0].updated_at;
+        }
+
+        async function pullCloudState() {
+            const url = `${cloudConfig.supabaseUrl}/rest/v1/${cloudConfig.table}?id=eq.${cloudConfig.rowId}&select=data,updated_at`;
+            const res = await fetch(url, { headers: cloudHeaders() });
+            if (!res.ok) throw new Error('Cloud fetch failed');
+            const rows = await res.json();
+            if (!rows.length || !rows[0].data || !rows[0].data.printerData) return;
+            const remoteUpdatedAt = rows[0].updated_at || null;
+            if (remoteUpdatedAt && lastCloudUpdatedAt && remoteUpdatedAt <= lastCloudUpdatedAt) return;
+            printerData = rows[0].data.printerData;
+            printerData.printers = (printerData.printers || []).map(p => ({ ...p, inks: normalizedInks(p.inks || {}) }));
+            if (remoteUpdatedAt) lastCloudUpdatedAt = remoteUpdatedAt;
+            saveData(false);
+            filterPrinters();
+        }
+
+        async function initCloudSync() {
+            if (!cloudConfig.enabled || !cloudConfig.supabaseUrl || !cloudConfig.supabaseAnonKey) {
+                setSyncStatus('Τοπική λειτουργία (μόνο εκτυπωτές)');
+                return;
             }
-            
-            if (savedInkInventory) {
-                inkInventory = JSON.parse(savedInkInventory);
+            try {
+                await pullCloudState();
+                setSyncStatus('Cloud sync ενεργό (εκτυπωτές)');
+                setInterval(() => pullCloudState().catch(() => setSyncStatus('Σφάλμα συγχρονισμού', true)), cloudConfig.pollIntervalMs);
+            } catch {
+                setSyncStatus('Cloud sync μη διαθέσιμο', true);
             }
         }
 
@@ -1574,34 +1419,12 @@
             });
         });
 
-        // Event Listeners
-        searchForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            filterPrinters();
-        });
-        
-        resetBtn.addEventListener('click', function() {
-            floorSelect.value = '';
-            companySelect.value = '';
-            ipInput.value = '';
-            displayPrinters(printerData.printers);
-        });
-        
+        searchForm.addEventListener('submit', e => { e.preventDefault(); filterPrinters(); });
+        resetBtn.addEventListener('click', () => { floorSelect.value = ''; companySelect.value = ''; ipInput.value = ''; displayPrinters(printerData.printers); });
         addPrinterBtn.addEventListener('click', openAddModal);
-        
-        closeModal.addEventListener('click', function() {
-            printerModal.style.display = "none";
-        });
-        
-        cancelModal.addEventListener('click', function() {
-            printerModal.style.display = "none";
-        });
-        
-        printerForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            savePrinter();
-        });
-        
+        closeModal.addEventListener('click', () => printerModal.style.display = 'none');
+        cancelModal.addEventListener('click', () => printerModal.style.display = 'none');
+        printerForm.addEventListener('submit', e => { e.preventDefault(); savePrinter(); });
         exportPrintersBtn.addEventListener('click', exportPrintersToExcel);
         
         exportInkBtn.addEventListener('click', exportInkToExcel);
@@ -1627,7 +1450,6 @@
             }
         });
 
-        // Αρχικοποίηση
         loadData();
         displayPrinters(printerData.printers);
         displayInkInventory();
