@@ -20,7 +20,7 @@ create table if not exists app_state (
 );
 
 insert into app_state (id, data)
-values (1, '{"printerData":{"printers":[]}}'::jsonb)
+values (1, '{"printerData":{"printers":[]},"inkInventory":{}}'::jsonb)
 on conflict (id) do nothing;
 
 alter table app_state enable row level security;
@@ -65,12 +65,12 @@ window.CLOUD_CONFIG = {
 
 ## 5) Έλεγχος ότι δουλεύει shared
 1. Άνοιξε το URL σε 2 διαφορετικά browsers/συσκευές.
-2. Κάνε αλλαγή στον πρώτο (προσθήκη ή επεξεργασία εκτυπωτή).
+2. Κάνε αλλαγή στον πρώτο (προσθήκη εκτυπωτή ή αλλαγή μελανιού).
 3. Σε μερικά δευτερόλεπτα (ανάλογα με `pollIntervalMs`) θα εμφανιστεί και στον δεύτερο.
 
 ## 6) Fallback χωρίς cloud
 Αν απενεργοποιήσεις το cloud (`enabled: false`), έχεις ακόμα:
 - `Backup JSON`
-- `Εισαγωγή JSON` (μόνο δεδομένα εκτυπωτών)
+- `Εισαγωγή JSON`
 
 ώστε να μεταφέρεις δεδομένα χειροκίνητα.
